@@ -142,8 +142,11 @@
    
    function recordGame(game, bet, payout) {
      if (!currentUser) return;
+     if (!currentUser.stats) currentUser.stats = freshStats();
      const st = currentUser.stats;
      if (!st.byGame) st.byGame = {};
+     if (st.biggestWin  === undefined) st.biggestWin  = 0;
+     if (st.biggestLoss === undefined) st.biggestLoss = 0;
      st.totalGames++;
      st.totalWagered += bet;
      st.totalPayout  += payout;
@@ -1920,6 +1923,17 @@
    // ═══════════════════════════════════════════════
    
    function bootApp() {
+     // Repair any broken/old account structure
+     if (currentUser) {
+       if (!currentUser.stats)              currentUser.stats = freshStats();
+       if (!currentUser.stats.byGame)       currentUser.stats.byGame = {};
+       if (!currentUser.stats.biggestWin)   currentUser.stats.biggestWin = 0;
+       if (!currentUser.stats.biggestLoss)  currentUser.stats.biggestLoss = 0;
+       if (!currentUser.history)            currentUser.history = [];
+       if (!currentUser.inventory)          currentUser.inventory = [];
+       if (currentUser.totalWagered === undefined) currentUser.totalWagered = 0;
+       saveUserData();
+     }
      sessionStart = getBalance();
      syncBalance();
      updateVipBadge();
