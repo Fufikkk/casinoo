@@ -143,6 +143,7 @@
    function recordGame(game, bet, payout) {
      if (!currentUser) return;
      const st = currentUser.stats;
+     if (!st.byGame) st.byGame = {};
      st.totalGames++;
      st.totalWagered += bet;
      st.totalPayout  += payout;
