@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Abyssal Casino</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ═══ OCEAN BACKGROUND ═══ -->
+<div class="ocean-bg">
+  <canvas id="bgCanvas"></canvas>
+  <div class="caustics"></div>
+  <div class="wave-layer wave1"></div>
+  <div class="wave-layer wave2"></div>
+  <div class="bubbles" id="bubbles"></div>
+</div>
+
+<!-- ═══ GLOBAL OVERLAYS ═══ -->
+<div id="overlay"><div id="alertBox"><div id="alertEmoji"></div><p id="alertText">—</p></div></div>
+<div class="jackpot-overlay hidden" id="jackpotOverlay"><div class="jackpot-text">🔱 JACKPOT! 🔱</div></div>
+<div class="free-spins-banner hidden" id="freeSpinsBanner"><span id="freeSpinsText">FREE SPINS: 0</span></div>
+
+<!-- ═══ MODAL: LOGIN/REGISTER ═══ -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box auth-box">
+    <div class="auth-logo">🐚 <span>ABYSSAL CASINO</span></div>
+    <div class="auth-tagline">Where the deep rewards the bold</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="showAuthTab('login')">LOGIN</button>
+      <button class="auth-tab" id="tabRegister" onclick="showAuthTab('register')">REGISTER</button>
+    </div>
+    <div id="authLogin" class="auth-form">
+      <input class="auth-input" id="loginName" placeholder="Username" maxlength="20"/>
+      <input class="auth-input" id="loginPin" type="password" placeholder="PIN (4 digits)" maxlength="4" onkeydown="if(event.key==='Enter')doLogin()"/>
+      <button class="auth-btn" onclick="doLogin()">ENTER THE ABYSS</button>
+      <div class="auth-hint">New here? Switch to Register →</div>
+      <div class="auth-hint" style="margin-top:8px;color:var(--text-dim)">Or play as guest:</div>
+      <button class="auth-btn guest-btn" onclick="doGuestLogin()">PLAY AS GUEST</button>
+    </div>
+    <div id="authRegister" class="auth-form hidden">
+      <input class="auth-input" id="regName" placeholder="Choose username" maxlength="20"/>
+      <input class="auth-input" id="regPin" type="password" placeholder="Choose PIN (4 digits)" maxlength="4" onkeydown="if(event.key==='Enter')doRegister()"/>
+      <button class="auth-btn" onclick="doRegister()">CREATE ACCOUNT</button>
+      <div class="auth-hint">🎁 Welcome bonus: 2,500 Kč on signup!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PAYTABLE ═══ -->
+<div class="modal-overlay hidden" id="paytableModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('paytableModal')">✕</button>
+    <h2>◈ PAYTABLE ◈</h2>
+    <div id="modalPaytable"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: LEADERBOARD ═══ -->
+<div class="modal-overlay hidden" id="leaderboardModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('leaderboardModal')">✕</button>
+    <h2>🏆 LEADERBOARD</h2>
+    <div class="lb-tabs">
+      <button class="lb-tab active" onclick="renderLeaderboard('alltime')">ALL TIME</button>
+      <button class="lb-tab" onclick="renderLeaderboard('weekly')">THIS WEEK</button>
+      <button class="lb-tab" onclick="renderLeaderboard('biggest')">BIGGEST WIN</button>
+    </div>
+    <div id="leaderboardContent"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: PROFILE ═══ -->
+<div class="modal-overlay hidden" id="profileModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+    <h2>👤 PROFILE</h2>
+    <div id="profileContent"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: STATS ═══ -->
+<div class="modal-overlay hidden" id="statsModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('statsModal')">✕</button>
+    <h2>📊 STATISTICS</h2>
+    <div id="statsContent"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: HISTORY ═══ -->
+<div class="modal-overlay hidden" id="historyModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('historyModal')">✕</button>
+    <h2>📜 GAME HISTORY</h2>
+    <div id="historyContent"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CHAT ═══ -->
+<div class="chat-panel hidden" id="chatPanel">
+  <div class="chat-header">
+    <span>💬 LIVE CHAT</span>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chatInput" placeholder="Say something…" maxlength="120" onkeydown="if(event.key==='Enter')sendChat()"/>
+    <button class="chat-send-btn" onclick="sendChat()">▶</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL: ADMIN ═══ -->
+<div class="modal-overlay hidden" id="adminModal">
+  <div class="modal-box" style="position:relative">
+    <button class="modal-close" onclick="closeModal('adminModal')">✕</button>
+    <h2>⚙️ ADMIN PANEL</h2>
+    <div id="adminContent"></div>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<header>
+  <div class="header-inner">
+    <div class="logo" onclick="openModal('profileModal');renderProfile()">
+      <span class="logo-glyph">🐚</span>
+      <div class="logo-words">
+        <span class="logo-main">ABYSSAL</span>
+        <span class="logo-sub">CASINO</span>
+      </div>
+    </div>
+
+    <nav class="switcher" id="gameNav">
+      <button class="switch-btn" id="btnSlots"     onclick="switchGame('slots')"><span class="switch-icon">🎰</span><span class="switch-label">Slots</span></button>
+      <button class="switch-btn" id="btnDeepReels" onclick="switchGame('slots5')"><span class="switch-icon">🎰</span><span class="switch-label">Deep Reels</span></button>
+      <button class="switch-btn" id="btnCrash"     onclick="switchGame('crash')"><span class="switch-icon">🚀</span><span class="switch-label">Crash</span></button>
+      <button class="switch-btn" id="btnRoulette"  onclick="switchGame('roulette')"><span class="switch-icon">🎡</span><span class="switch-label">Roulette</span></button>
+      <button class="switch-btn" id="btnBlackjack" onclick="switchGame('blackjack')"><span class="switch-icon">🃏</span><span class="switch-label">Blackjack</span></button>
+      <button class="switch-btn" id="btnCoinflip"  onclick="switchGame('coinflip')"><span class="switch-icon">🪙</span><span class="switch-label">Coinflip</span></button>
+      <button class="switch-btn" id="btnPoker"     onclick="switchGame('poker')"><span class="switch-icon">♠️</span><span class="switch-label">Poker</span></button>
+    </nav>
+
+    <div class="header-right">
+      <div class="vip-badge" id="vipBadge">🌊 VIP 0</div>
+      <div class="balance-pill">
+        <span class="bal-icon">💰</span>
+        <span id="ucetLabel">0 Kč</span>
+      </div>
+      <div class="header-btns">
+        <button class="hbtn" id="dailyBtn" onclick="claimDaily()" title="Daily Reward">🎁</button>
+        <button class="hbtn" onclick="openModal('bonusModal');renderBonuses()" title="Bonuses">🌟</button>
+        <button class="hbtn" onclick="openModal('leaderboardModal');renderLeaderboard('alltime')" title="Leaderboard">🏆</button>
+        <button class="hbtn" onclick="openModal('statsModal');renderStats()" title="Statistics">📊</button>
+        <button class="hbtn" onclick="openModal('historyModal');renderHistory()" title="History">📜</button>
+        <button class="hbtn" onclick="toggleChat()" title="Live Chat">💬</button>
+        <button class="hbtn" onclick="topUp()" title="Add Funds">+💰</button>
+        <button class="hbtn" onclick="openModal('depositModal');renderDeposit()" title="Deposit/Withdraw">🏦</button>
+        <button class="hbtn" onclick="openAdminPanel()" title="Admin">⚙️</button>
+        <button class="hbtn logout-btn" onclick="doLogout()" title="Logout">↩</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MAIN ═══ -->
+<main id="mainArea">
+
+  <!-- ═══ SLOTS (3-reel classic) ═══ -->
+  <section class="game-section hidden" id="sectionSlots">
+    <div class="game-card slot-card">
+      <div class="card-title-row">
+        <h2>🔱 Trident Slots</h2>
+        <p>Align the depths — <span id="slotsBetLabel">100 Kč</span> per dive</p>
+      </div>
+      <div class="machine-frame">
+        <div class="machine-top-bar"><span class="machine-label">◈ ABYSSAL REELS ◈</span></div>
+        <div class="slot-viewport">
+          <div class="slot-grid">
+            <div class="reel" id="reel1"><div class="strip" id="strip1"></div></div>
+            <div class="reel" id="reel2"><div class="strip" id="strip2"></div></div>
+            <div class="reel" id="reel3"><div class="strip" id="strip3"></div></div>
+          </div>
+          <div class="payline-top"></div>
+          <div class="payline-mid"></div>
+          <div class="payline-bot"></div>
+        </div>
+        <div class="machine-bottom-bar">
+          <div class="payout-table">
+            <span class="pt-row jackpot">3× match → <b>5× bet</b></span>
+            <span class="pt-row pair">2× match → <b>2× bet</b></span>
+            <span class="pt-row miss">no match → <b>−bet</b></span>
+          </div>
+        </div>
+      </div>
+      <div id="slotResult" class="slot-result"></div>
+      <div class="slots-bet-row">
+        <span class="ctrl-label">BET:</span>
+        <div class="bet-buttons">
+          <button class="bet-btn" onclick="setSlotsBet(50)">50</button>
+          <button class="bet-btn active" onclick="setSlotsBet(100)">100</button>
+          <button class="bet-btn" onclick="setSlotsBet(250)">250</button>
+          <button class="bet-btn" onclick="setSlotsBet(500)">500</button>
+        </div>
+        <div class="custom-bet-wrap">
+          <input class="custom-bet-input" id="slotsCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('slots')"/>
+          <button class="custom-bet-btn" onclick="applyCustomBet('slots')">SET</button>
+        </div>
+      </div>
+      <button class="btn-action btn-spin" id="spinBtn" onclick="spin()">
+        <span class="btn-label">DIVE IN</span>
+        <span class="btn-hint">press SPACE</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══ DEEP REELS (5-reel) ═══ -->
+  <section class="game-section hidden" id="sectionDeepReels">
+    <div class="machine-wrap">
+      <div class="marquee-bar"><span class="marquee-text" id="marqueeText">◈ ABYSSAL DEEP REELS ◈ SPIN TO WIN ◈</span></div>
+      <div class="payline-indicators left" id="plLeft"></div>
+      <div class="reels-section">
+        <div class="reels-frame">
+          <div class="reels-inner" id="reelsInner"></div>
+          <div class="payline-overlays" id="paylineOverlays"></div>
+        </div>
+      </div>
+      <div class="payline-indicators right" id="plRight"></div>
+      <div class="paytable-strip" id="paytableStrip"></div>
+    </div>
+    <div class="balance-block">
+      <div class="bal-item"><span class="bal-label">BALANCE</span><span class="bal-value" id="balanceDisplay">0 Kč</span></div>
+      <div class="bal-item"><span class="bal-label">BET</span><span class="bal-value" id="betDisplay">50 Kč</span></div>
+      <div class="bal-item"><span class="bal-label">LAST WIN</span><span class="bal-value win-val" id="winDisplay">—</span></div>
+      <button class="btn-topup" onclick="openPaytable()">PAYTABLE</button>
+    </div>
+    <div class="controls-bar">
+      <div class="ctrl-group">
+        <span class="ctrl-label">BET SIZE</span>
+        <div class="bet-buttons">
+          <button class="bet-btn" onclick="setBet(10)">10</button>
+          <button class="bet-btn active" onclick="setBet(50)">50</button>
+          <button class="bet-btn" onclick="setBet(100)">100</button>
+          <button class="bet-btn" onclick="setBet(250)">250</button>
+          <button class="bet-btn" onclick="setBet(500)">500</button>
+        </div>
+        <div class="custom-bet-wrap">
+          <input class="custom-bet-input" id="deepCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('deep')"/>
+          <button class="custom-bet-btn" onclick="applyCustomBet('deep')">SET</button>
+        </div>
+      </div>
+      <div class="spin-group">
+        <button class="btn-spin" id="deepSpinBtn" onclick="startSpin()">
+          <span class="spin-icon">⚓</span><span class="spin-label">SPIN</span>
+        </button>
+        <div class="spin-sub-btns">
+          <button class="btn-auto" id="autoBtn" onclick="toggleAuto()">AUTO</button>
+          <button class="btn-max" onclick="setMaxBet()">MAX BET</button>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">AUTO SPINS</span>
+        <div class="bet-buttons">
+          <button class="bet-btn" onclick="setAutoCount(5)">5</button>
+          <button class="bet-btn active" onclick="setAutoCount(10)">10</button>
+          <button class="bet-btn" onclick="setAutoCount(25)">25</button>
+          <button class="bet-btn" onclick="setAutoCount(50)">50</button>
+        </div>
+      </div>
+    </div>
+    <div class="result-display" id="resultDisplay"></div>
+  </section>
+
+  <!-- ═══ CRASH ═══ -->
+  <section class="game-section hidden" id="sectionCrash">
+    <div class="game-card crash-card">
+      <div class="card-title-row"><h2>🚀 Abyss Launch</h2><p>Cash out before the pressure crushes you</p></div>
+      <div class="crash-viewport">
+        <canvas id="crashCanvas"></canvas>
+        <div class="crash-multiplier" id="crashMultiplier">1.00×</div>
+        <div class="crash-status" id="crashStatus">Place your bet</div>
+      </div>
+      <div class="crash-controls">
+        <div class="ctrl-group">
+          <label>BET AMOUNT</label>
+          <div class="bet-buttons">
+            <button class="bet-btn" onclick="setCrashBet(50)">50</button>
+            <button class="bet-btn active" onclick="setCrashBet(100)">100</button>
+            <button class="bet-btn" onclick="setCrashBet(250)">250</button>
+            <button class="bet-btn" onclick="setCrashBet(500)">500</button>
+          </div>
+          <div class="custom-bet-wrap">
+            <input class="custom-bet-input" id="crashCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('crash')"/>
+            <button class="custom-bet-btn" onclick="applyCustomBet('crash')">SET</button>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label>AUTO CASHOUT</label>
+          <div class="stepper-wrap">
+            <button class="stepper" onclick="changeCrashAuto(-0.5)">−</button>
+            <input type="number" id="autoCashoutInput" value="2.0" min="1.1" max="100" step="0.5"/>
+            <button class="stepper" onclick="changeCrashAuto(0.5)">+</button>
+          </div>
+        </div>
+        <div class="ctrl-group crash-btn-group">
+          <button class="btn-action btn-crash-start" id="crashBetBtn" onclick="crashPlaceBet()"><span class="btn-label">LAUNCH</span></button>
+          <button class="btn-action btn-crash-cashout" id="crashCashoutBtn" onclick="crashCashout()" disabled><span class="btn-label">CASH OUT</span></button>
+        </div>
+      </div>
+      <div class="crash-history" id="crashHistory"><span class="ch-label">HISTORY:</span></div>
+    </div>
+  </section>
+
+  <!-- ═══ ROULETTE ═══ -->
+  <section class="game-section hidden" id="sectionRoulette">
+    <div class="game-card roulette-card">
+      <div class="card-title-row"><h2>🎡 Abyssal Roulette</h2><p>The wheel of the deep spins eternal</p></div>
+      <div class="roulette-layout">
+        <div class="roulette-wheel-wrap">
+          <canvas id="rouletteCanvas" width="260" height="260"></canvas>
+          <div class="roulette-ball-display" id="rouletteBall">?</div>
+        </div>
+        <div class="roulette-bets">
+          <div class="roulette-history" id="rouletteHistory"></div>
+          <div class="roulette-bet-amount">
+            <span class="ctrl-label">BET AMOUNT:</span>
+            <div class="bet-buttons">
+              <button class="bet-btn" onclick="setRouletteBet(25)">25</button>
+              <button class="bet-btn active" onclick="setRouletteBet(50)">50</button>
+              <button class="bet-btn" onclick="setRouletteBet(100)">100</button>
+              <button class="bet-btn" onclick="setRouletteBet(250)">250</button>
+            </div>
+            <div class="custom-bet-wrap">
+              <input class="custom-bet-input" id="rouletteCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('roulette')"/>
+              <button class="custom-bet-btn" onclick="applyCustomBet('roulette')">SET</button>
+            </div>
+          </div>
+          <div class="roulette-chip-display">Bet: <span id="rouletteBetAmt">50</span> Kč on: <span id="rouletteBetOn">—</span></div>
+          <div class="roulette-betting-grid" id="rouletteBettingGrid"></div>
+          <button class="btn-action btn-spin roulette-spin-btn" id="rouletteSpinBtn" onclick="spinRoulette()">
+            <span class="btn-label">SPIN WHEEL</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ BLACKJACK ═══ -->
+  <section class="game-section hidden" id="sectionBlackjack">
+    <div class="game-card bj-card">
+      <div class="card-title-row"><h2>🃏 Deep Blackjack</h2><p>Beat the dealer without sinking</p></div>
+      <div class="bj-table">
+        <div class="bj-dealer-zone">
+          <div class="bj-label">DEALER <span id="dealerScore" class="bj-score"></span></div>
+          <div class="bj-hand" id="dealerHand"></div>
+        </div>
+        <div class="bj-status" id="bjStatus">Place your bet to begin</div>
+        <div class="bj-player-zone">
+          <div class="bj-label">YOU <span id="playerScore" class="bj-score"></span></div>
+          <div class="bj-hand" id="playerHand"></div>
+        </div>
+      </div>
+      <div class="bj-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">BET</span>
+          <div class="bet-buttons">
+            <button class="bet-btn" onclick="setBjBet(50)">50</button>
+            <button class="bet-btn active" onclick="setBjBet(100)">100</button>
+            <button class="bet-btn" onclick="setBjBet(250)">250</button>
+            <button class="bet-btn" onclick="setBjBet(500)">500</button>
+          </div>
+          <div class="custom-bet-wrap">
+            <input class="custom-bet-input" id="bjCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('bj')"/>
+            <button class="custom-bet-btn" onclick="applyCustomBet('bj')">SET</button>
+          </div>
+        </div>
+        <div class="bj-action-btns">
+          <button class="btn-action btn-bj-deal" id="bjDealBtn" onclick="bjDeal()"><span class="btn-label">DEAL</span></button>
+          <button class="btn-action btn-bj-hit" id="bjHitBtn" onclick="bjHit()" disabled><span class="btn-label">HIT</span></button>
+          <button class="btn-action btn-bj-stand" id="bjStandBtn" onclick="bjStand()" disabled><span class="btn-label">STAND</span></button>
+          <button class="btn-action btn-bj-double" id="bjDoubleBtn" onclick="bjDouble()" disabled><span class="btn-label">DOUBLE</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ COINFLIP ═══ -->
+  <section class="game-section hidden" id="sectionCoinflip">
+    <div class="game-card cf-card">
+      <div class="card-title-row"><h2>🪙 Abyss Flip</h2><p>50/50 — heads or tails of the abyss</p></div>
+      <div class="cf-arena">
+        <div class="coin-wrap"><div class="coin" id="coin"><div class="coin-face heads">🐚</div><div class="coin-face tails">⚓</div></div></div>
+        <div class="cf-result" id="cfResult"></div>
+      </div>
+      <div class="cf-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">CHOOSE SIDE</span>
+          <div class="cf-side-btns">
+            <button class="cf-side active" id="cfHeads" onclick="setCfSide('heads')">🐚 SHELL</button>
+            <button class="cf-side" id="cfTails" onclick="setCfSide('tails')">⚓ ANCHOR</button>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">BET</span>
+          <div class="bet-buttons">
+            <button class="bet-btn" onclick="setCfBet(50)">50</button>
+            <button class="bet-btn active" onclick="setCfBet(100)">100</button>
+            <button class="bet-btn" onclick="setCfBet(250)">250</button>
+            <button class="bet-btn" onclick="setCfBet(500)">500</button>
+          </div>
+          <div class="custom-bet-wrap">
+            <input class="custom-bet-input" id="cfCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('cf')"/>
+            <button class="custom-bet-btn" onclick="applyCustomBet('cf')">SET</button>
+          </div>
+        </div>
+        <button class="btn-action btn-cf-flip" id="cfFlipBtn" onclick="doFlip()"><span class="btn-label">FLIP!</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ VIDEO POKER ═══ -->
+  <section class="game-section hidden" id="sectionPoker">
+    <div class="game-card poker-card">
+      <div class="card-title-row"><h2>♠️ Abyss Poker</h2><p>5-card draw — hold your best hand</p></div>
+      <div class="poker-hand-wrap">
+        <div class="poker-hand" id="pokerHand"></div>
+      </div>
+      <div class="poker-hand-name" id="pokerHandName">Place your bet and deal</div>
+      <div class="poker-paytable-mini" id="pokerPaytableMini"></div>
+      <div class="poker-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">BET</span>
+          <div class="bet-buttons">
+            <button class="bet-btn" onclick="setPokerBet(50)">50</button>
+            <button class="bet-btn active" onclick="setPokerBet(100)">100</button>
+            <button class="bet-btn" onclick="setPokerBet(250)">250</button>
+            <button class="bet-btn" onclick="setPokerBet(500)">500</button>
+          </div>
+          <div class="custom-bet-wrap">
+            <input class="custom-bet-input" id="pokerCustomBet" type="number" min="1" placeholder="Custom…" onkeydown="if(event.key==='Enter')applyCustomBet('poker')"/>
+            <button class="custom-bet-btn" onclick="applyCustomBet('poker')">SET</button>
+          </div>
+        </div>
+        <div class="poker-action-btns">
+          <button class="btn-action btn-poker-deal" id="pokerDealBtn" onclick="pokerDeal()"><span class="btn-label">DEAL</span></button>
+          <button class="btn-action btn-poker-draw" id="pokerDrawBtn" onclick="pokerDraw()" disabled><span class="btn-label">DRAW</span></button>
+        </div>
+      </div>
+      <div class="poker-hint" id="pokerHint">Select cards to HOLD, then click DRAW</div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ BOTTOM STAT TICKER ═══ -->
+<div class="stat-ticker" id="statTicker">
+  <span>💰 Balance: <b id="tickerBal">0</b></span>
+  <span>📈 Session P/L: <b id="tickerPL">0</b></span>
+  <span>🏆 Biggest Win: <b id="tickerBW">0</b></span>
+  <span>🎮 Games: <b id="tickerGames">0</b></span>
+  <span>📊 RTP: <b id="tickerRTP">—</b></span>
+</div>
+
+<!-- ═══ MODAL: DEPOSIT / WITHDRAW ═══ -->
+<div class="modal-overlay hidden" id="depositModal">
+  <div class="modal-box" style="position:relative;max-width:480px">
+    <button class="modal-close" onclick="closeModal('depositModal')">✕</button>
+    <h2>🏦 BANK VAULT</h2>
+    <div id="depositContent"></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: BONUS / REFERRAL ═══ -->
+<div class="modal-overlay hidden" id="bonusModal">
+  <div class="modal-box" style="position:relative;max-width:480px">
+    <button class="modal-close" onclick="closeModal('bonusModal')">✕</button>
+    <h2>🎁 BONUSES</h2>
+    <div id="bonusContent"></div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
