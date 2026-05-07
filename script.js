@@ -667,18 +667,18 @@
    const BASE_SPIN_MS = 900;
    const STAGGER_MS   = 220;
    
-   const deepSymbols = {
-     SEVEN:   {id:'SEVEN',  glyph:'7️⃣', weight:2,  pay:{3:50,4:200,5:1000}, label:'Seven'  },
-     DIAMOND: {id:'DIAMOND',glyph:'💎', weight:4,  pay:{3:20,4:80, 5:400 }, label:'Diamond'},
-     CROWN:   {id:'CROWN',  glyph:'👑', weight:6,  pay:{3:12,4:40, 5:200 }, label:'Crown'  },
-     BELL:    {id:'BELL',   glyph:'🔔', weight:10, pay:{3:8, 4:20, 5:100 }, label:'Bell'   },
-     STAR:    {id:'STAR',   glyph:'⭐', weight:12, pay:{3:5, 4:15, 5:60  }, label:'Star'   },
-     CLOVER:  {id:'CLOVER', glyph:'🍀', weight:14, pay:{3:4, 4:10, 5:40  }, label:'Clover' },
-     BOLT:    {id:'BOLT',   glyph:'⚡', weight:15, pay:{3:3, 4:8,  5:25  }, label:'Bolt'   },
-     LEMON:   {id:'LEMON',  glyph:'🍋', weight:18, pay:{3:2, 4:5,  5:15  }, label:'Lemon'  },
-     WILD:    {id:'WILD',   glyph:'🌊', weight:3,  pay:{3:25,4:100,5:500 }, label:'Wild',    isWild:true   },
-     SCATTER: {id:'SCATTER',glyph:'🐚', weight:3,  pay:{3:0, 4:0,  5:0  }, label:'Scatter', isScatter:true},
-   };
+const deepSymbols = {
+  SEVEN:   {id:'SEVEN',  glyph:'7️⃣', weight:1,  pay:{3:20,4:80,5:300}, label:'Seven'  },
+  DIAMOND: {id:'DIAMOND',glyph:'💎', weight:2,  pay:{3:8, 4:30,5:120}, label:'Diamond'},
+  CROWN:   {id:'CROWN',  glyph:'👑', weight:3,  pay:{3:5, 4:15,5:60 }, label:'Crown'  },
+  BELL:    {id:'BELL',   glyph:'🔔', weight:6,  pay:{3:3, 4:8, 5:25 }, label:'Bell'   },
+  STAR:    {id:'STAR',   glyph:'⭐', weight:8,  pay:{3:2, 4:6, 5:15 }, label:'Star'   },
+  CLOVER:  {id:'CLOVER', glyph:'🍀', weight:10, pay:{3:1, 4:4, 5:10 }, label:'Clover' },
+  BOLT:    {id:'BOLT',   glyph:'⚡', weight:12, pay:{3:1, 4:3, 5:8  }, label:'Bolt'   },
+  LEMON:   {id:'LEMON',  glyph:'🍋', weight:25, pay:{3:0.5,4:2,5:5 }, label:'Lemon'  },
+  WILD:    {id:'WILD',   glyph:'🌊', weight:1,  pay:{3:10,4:40,5:150}, label:'Wild', isWild:true },
+  SCATTER: {id:'SCATTER',glyph:'🐚', weight:1,  pay:{3:0, 4:0, 5:0 }, label:'Scatter', isScatter:true},
+};
    
    const SYMBOL_POOL = [];
    Object.values(deepSymbols).forEach(s => { for(let i=0;i<s.weight;i++) SYMBOL_POOL.push(s.id); });
